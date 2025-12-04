@@ -64,6 +64,9 @@ npx hardhat compile
 # 运行所有测试
 npx hardhat test
 # 测试结果展示
+
+<img width="791" height="444" alt="image" src="https://github.com/user-attachments/assets/2e5076d2-e5ca-47ee-af85-9ed8e8f2dc0e" />
+
 ·············································································································
 |  Solidity and Network Configuration                                                                       │
 ························|·················|···············|·················|································

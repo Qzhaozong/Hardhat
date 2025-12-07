@@ -3,7 +3,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
 // 定义测试套件
-describe('Helloweb3 合约测试', function () {
+describe('Helloworld 合约测试', function () {
     let helloweb3;  // 声明一个变量，用于存储部署后的合约实例
     let owner;  // 声明变量，用于存储部署者帐户
     // 定义钩子，用于测试前准备
@@ -13,9 +13,9 @@ describe('Helloweb3 合约测试', function () {
         console.log('部署者地址：', owner.address);  // 打印部署者地址用于调试
         // 导入合约并进行部署
         // 获取合约工厂 通过合约名获取工厂对象 使用await 等待一步操作完成
-        const Helloweb3 = await ethers.getContractFactory('Helloweb3');
+        const Helloworld = await ethers.getContractFactory('HelloWorld');
         // 使用deploy 部署合约 await 等待合约部署完成
-        const contract = await Helloweb3.deploy();
+        const contract = await Helloworld.deploy();
         // 等待合约部署完成 交易被矿工确认
         await contract.waitForDeployment();
         helloweb3 = contract;   // 将部署后的合约实例赋值给变量
@@ -59,10 +59,10 @@ describe('Helloweb3 合约测试', function () {
             const [deployer] = await ethers.getSigners();    // 重新获取部署者帐户
             console.log("\n=== 开始部署测试 ===");  // 打印分割线
             console.log("部署者：", deployer.address)   // 打印部署者地址
-            const Helloweb3 = await ethers.getContractFactory('Helloweb3'); // 再次获取合约工厂
+            const Helloworld = await ethers.getContractFactory('HelloWorld'); // 再次获取合约工厂
             console.log('获取合约工厂成功');
             // 部署合约
-            const contract = await Helloweb3.deploy();  // 部署合约
+            const contract = await Helloworld.deploy();  // 部署合约
             console.log('发送部署交易');
             // 等待部署完成
             await contract.waitForDeployment(); // 等待部署确认

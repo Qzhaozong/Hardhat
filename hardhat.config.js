@@ -15,6 +15,10 @@ module.exports = {
     // 本地网络
     hardhat: {
       chainId: 31337,
+      accounts: {
+        mnemonic: "test test test test test test test test test test test junk",
+        accountsBalance: "10000000000000000000000" // 10000 ETH
+      }
     },
     // 本地开发网络（需要本地节点）
     localhost: {

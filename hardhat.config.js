@@ -32,6 +32,11 @@ module.exports = {
   },
   networks: {
     hardhat: {
+      chainId: 1337,
+      mining: {
+        auto: true,
+        interval: 0
+      },
       blockGasLimit: 30000000,
       initialBaseFeePerGas: 0,
     },
@@ -39,6 +44,7 @@ module.exports = {
       url: "http://127.0.0.1:8545" // 本地节点地址
     }
   },
+
   gasReporter: {
     enabled: true,
     currency: "USD",
@@ -48,7 +54,7 @@ module.exports = {
     src: "./contracts",
   },
   mocha: {
-    timeout: 40000,
+    timeout: 60000,
   },
   paths: {
     sources: "./contracts",

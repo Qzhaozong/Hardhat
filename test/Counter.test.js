@@ -2,7 +2,6 @@
 const { expect } = require('chai'); // 引入Chai断言库的expect方法，用于编写测试断言
 const { ethers } = require('hardhat');  // 引入Hardhat 的ethers工具，用于与以太坊区块链交互
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");    // 引入hardhat 网络助手，用于加载fixture 测试夹具
-const { copyRequest } = require('ethers');
 
 // 定义一个fixture 来部署合约
 async function deployCounterFixture() {
@@ -116,7 +115,6 @@ describe('Counter 合约测试', function () {
             expect(receipt.gasUsed).to.be.lessThan(50000);
         });
         it('应能处理快速连续递增', async function () {
-
             const { counter } = await loadFixture(deployCounterFixture);
             const iterations = 10;
             for (let i = 0; i < iterations; i++) {
@@ -125,10 +123,5 @@ describe('Counter 合约测试', function () {
             expect(await counter.count()).to.equal(iterations)
         });
     });
-    describe('')
-
-
-
-
-
+    // describe('')
 })

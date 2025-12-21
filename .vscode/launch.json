@@ -4,7 +4,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Hardhat: 测试当前文件",
+            "name": "Hardhat: CurrentFile",
             "program": "${workspaceFolder}/node_modules/.bin/hardhat",
             "args": [
                 "test",
@@ -20,7 +20,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Hardhat: 运行所有测试",
+            "name": "Hardhat: AllFile",
             "program": "${workspaceFolder}/node_modules/.bin/hardhat",
             "args": [
                 "test"
@@ -34,7 +34,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Hardhat: 运行指定测试",
+            "name": "Hardhat: SpecifyFile",
             "program": "${workspaceFolder}/node_modules/.bin/hardhat",
             "args": [
                 "test",

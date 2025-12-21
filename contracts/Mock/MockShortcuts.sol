@@ -3,43 +3,32 @@ pragma solidity ^0.8.28;
 
 contract MockShortcuts {
     address public router;
-    bool public shouldRevert;
     uint256 public callCount;
+
+    event Executed(uint256 callCount, uint256 value);
 
     constructor(address _router) {
         router = _router;
     }
 
-    function setShouldRevert(bool _shouldRevert) external {
-        shouldRevert = _shouldRevert;
-    }
-
+    // 接收以太币
     receive() external payable {}
 
+    // 执行调用
     function execute() external payable returns (bytes memory) {
         callCount++;
-
-        if (shouldRevert) {
-            revert("MockShortcuts: Execution failed");
-        }
-
-        return abi.encode(callCount);
+        emit Executed(callCount, msg.value);
+        return abi.encode(callCount, msg.value);
     }
 
-    function executeSwap(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        address receiver
-    ) external returns (bytes memory) {
+    // 简单的回退函数，总是成功
+    fallback() external payable {
         callCount++;
-
-        uint256 amountOut = (amountIn * 95) / 100;
-
-        if (tokenOut == address(0)) {
-            payable(receiver).transfer(amountOut);
+        emit Executed(callCount, msg.value);
+        // 返回一些数据避免空返回
+        bytes memory data = abi.encode(callCount, msg.value);
+        assembly {
+            return(add(data, 32), mload(data))
         }
-
-        return abi.encode(amountOut);
     }
 }

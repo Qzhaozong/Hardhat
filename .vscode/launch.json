@@ -1,10 +1,27 @@
 {
     "version": "0.2.0",
     "configurations": [
+        // 1. 运行所有测试
         {
             "type": "node",
             "request": "launch",
-            "name": "Hardhat: CurrentFile",
+            "name": "Hardhat: Test All",
+            "program": "${workspaceFolder}/node_modules/.bin/hardhat",
+            "args": [
+                "test"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        // 2. 运行当前文件的所有测试
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Hardhat: Test Current File",
             "program": "${workspaceFolder}/node_modules/.bin/hardhat",
             "args": [
                 "test",
@@ -17,35 +34,60 @@
             ],
             "cwd": "${workspaceFolder}"
         },
+        // 3. 调试选中的测试用例（核心功能）
         {
             "type": "node",
             "request": "launch",
-            "name": "Hardhat: AllFile",
-            "program": "${workspaceFolder}/node_modules/.bin/hardhat",
-            "args": [
-                "test"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            "skipFiles": [
-                "<node_internals>/**"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Hardhat: SpecifyFile",
+            "name": "Hardhat: Debug Selected Test",
             "program": "${workspaceFolder}/node_modules/.bin/hardhat",
             "args": [
                 "test",
                 "--grep",
-                "应该验证输出代币数量是否达到最小要求"
+                "${selectedText}"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
-        }
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        // // 4. 调试当前文件选中的测试用例
+        // {
+        //     "type": "node",
+        //     "request": "launch",
+        //     "name": "Hardhat: Debug Current File Selected",
+        //     "program": "${workspaceFolder}/node_modules/.bin/hardhat",
+        //     "args": [
+        //         "test",
+        //         "${file}",
+        //         "--grep",
+        //         "${selectedText}"
+        //     ],
+        //     "console": "integratedTerminal",
+        //     "internalConsoleOptions": "neverOpen",
+        //     "skipFiles": [
+        //         "<node_internals>/**"
+        //     ],
+        //     "cwd": "${workspaceFolder}"
+        // },
+        // // 5. 常用测试快速入口
+        // {
+        //     "type": "node",
+        //     "request": "launch",
+        //     "name": "Hardhat: Quick - 部署测试",
+        //     "program": "${workspaceFolder}/node_modules/.bin/hardhat",
+        //     "args": [
+        //         "test",
+        //         "--grep",
+        //         "应该正确部署合约"
+        //     ],
+        //     "console": "integratedTerminal",
+        //     "internalConsoleOptions": "neverOpen",
+        //     "skipFiles": [
+        //         "<node_internals>/**"
+        //     ],
+        //     "cwd": "${workspaceFolder}"
+        // }
     ]
 }

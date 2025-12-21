@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-3.0-only
-
 pragma solidity ^0.8.16;
 
 import "./CommandBuilder.sol";
@@ -53,11 +52,9 @@ abstract contract VM {
 
             if (flags & FLAG_CT_MASK == FLAG_CT_CALL) {
                 (success, outData) = address(uint160(uint256(command))).call(
-                    // target
-                    // inputs
                     flags & FLAG_DATA == 0
                         ? state.buildInputs(
-                            bytes4(command), // selector
+                            bytes4(command),
                             indices,
                             indicesLength
                         )
@@ -67,12 +64,11 @@ abstract contract VM {
                         ]
                 );
             } else if (flags & FLAG_CT_MASK == FLAG_CT_STATICCALL) {
-                (success, outData) = address(uint160(uint256(command))) // target
+                (success, outData) = address(uint160(uint256(command)))
                     .staticcall(
-                        // inputs
                         flags & FLAG_DATA == 0
                             ? state.buildInputs(
-                                bytes4(command), // selector
+                                bytes4(command),
                                 indices,
                                 indicesLength
                             )
@@ -87,18 +83,17 @@ abstract contract VM {
                 ];
                 require(v.length == 32, "Value must be 32 bytes");
                 uint256 callEth = uint256(bytes32(v));
-                (success, outData) = address(uint160(uint256(command))).call{ // target
+                (success, outData) = address(uint160(uint256(command))).call{
                     value: callEth
                 }(
-                    // inputs
                     flags & FLAG_DATA == 0
                         ? state.buildInputs(
-                            bytes4(command), // selector
-                            indices << 8, // skip value input
-                            indicesLength - 1 // max indices length reduced by value input
+                            bytes4(command),
+                            indices << 8,
+                            indicesLength - 1
                         )
                         : state[
-                            uint8(bytes1(indices << 8)) & // first byte after value input
+                            uint8(bytes1(indices << 8)) &
                                 CommandBuilder.IDX_VALUE_MASK
                         ]
                 );
@@ -109,26 +104,17 @@ abstract contract VM {
             if (!success) {
                 string memory message = "Unknown";
                 if (outData.length > 68) {
-                    // This might be an error message, parse the outData
-                    // Estimate the bytes length of the possible error message
                     uint256 estimatedLength = _estimateBytesLength(outData, 68);
-                    // Remove selector. First 32 bytes should be a pointer that indicates the start of data in memory
                     assembly {
                         outData := add(outData, 4)
                     }
                     uint256 pointer = uint256(bytes32(outData));
                     if (pointer == 32) {
-                        // Remove pointer. If it is a string, the next 32 bytes will hold the size
                         assembly {
                             outData := add(outData, 32)
                         }
                         uint256 size = uint256(bytes32(outData));
-                        // If the size variable is the same as the estimated bytes length, we can be fairly certain
-                        // this is a dynamic string, so convert the bytes to a string and emit the message. While an
-                        // error function with 3 static parameters is capable of producing a similar output, there is
-                        // low risk of a contract unintentionally emitting a message.
                         if (size == estimatedLength) {
-                            // Remove size. The remaining data should be the string content
                             assembly {
                                 outData := add(outData, 32)
                             }
@@ -159,10 +145,9 @@ abstract contract VM {
         uint256 pos
     ) internal pure returns (uint256 estimate) {
         uint256 length = data.length;
-        estimate = length - pos; // Assume length equals alloted space
+        estimate = length - pos;
         for (uint256 i = pos; i < length; ) {
             if (data[i] == 0) {
-                // Zero bytes found, adjust estimated length
                 estimate = i - pos;
                 break;
             }

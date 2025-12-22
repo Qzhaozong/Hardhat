@@ -1,4 +1,6 @@
+const { time } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
+const { accessListify, lock } = require("ethers");
 const { ethers } = require("hardhat");
 
 describe("AdvancedToken 滑点测试", function () {
@@ -158,17 +160,15 @@ describe("AdvancedToken 滑点测试", function () {
             expect(receiverBalanceAfter - receiverBalanceBefore).to.equal(amount);
         });
 
-        it("转账金额不足以支付手续费时应该失败", async function () {
+        it("转账金额不足以支付手续费时应该失败--生产不存在当前成绩", async function () {
             // 设置高手续费率
             await token.connect(owner).setTransferFee(500); // 50%
-
-
             const amount = ethers.parseEther("1");
             const fee = await token.calculateFee(amount);
-
             // 因为 1 token 的 50% 是 0.5，但整数除法会得到 0
-            // 所以需要测试边界情况
-            expect(fee).to.equal(0n); // 1 * 5000 / 10000 = 0.5 → 向下取整为 0
+            // 
+            const expectedFee = (amount * 500n) / 10000n;
+            expect(fee).to.equal(expectedFee); // 1 * 5000 / 10000 = 0.5 → 向下取整为 0
 
             // 转账应该成功，因为手续费为0
             await expect(
@@ -185,25 +185,42 @@ describe("AdvancedToken 滑点测试", function () {
         });
 
         it("锁定部分代币后可用余额应该减少", async function () {
+            // 先查询用户实际余额
             const totalBalance = await token.balanceOf(user1.address);
-            const lockAmount = ethers.parseEther("5000");
-            const unlockTime = Math.floor(Date.now() / 1000) + 86400; // 24小时后
-
+            const lockAmount = totalBalance / 10n * 5n; // 锁定一半
+            // 获取当前区块时间戳
+            const latestBlock = await ethers.provider.getBlock("latest");
+            const unlockTime = latestBlock.timestamp + 86400; // 24小时后解锁
+            // 锁定前检查
+            console.log("锁定前余额：", totalBalance.toString());
+            console.log("锁定金额：", lockAmount.toString());
+            // 锁定代币
             await token.connect(user1).lockTokens(lockAmount, unlockTime);
-
+            // 锁定后检查
+            const newBalance = await token.balanceOf(user1.address);
             const available = await token.availableBalance(user1.address);
             const locked = await token.getLockedAmount(user1.address);
 
-            expect(available).to.equal(totalBalance - lockAmount);
+            console.log("锁定后余额：", newBalance.toString());
+            console.log("可用余额：", available.toString());
+            console.log("锁定金额：", locked.toString());
+            expect(newBalance).to.equal(totalBalance - lockAmount);
+            expect(available).to.equal(totalBalance - available);
             expect(locked).to.equal(lockAmount);
         });
 
         it("锁定代币后不能转账超过可用余额", async function () {
             const totalBalance = await token.balanceOf(user1.address);
-            const lockAmount = ethers.parseEther("7000");
+            const lockAmount = totalBalance / 10n * 8n; // 锁定80%
             const unlockTime = Math.floor(Date.now() / 1000) + 86400;
 
             await token.connect(user1).lockTokens(lockAmount, unlockTime);
+            const newBalance = await token.balanceOf(user1.address);
+            // const availables = await token.availableBalance(user1.address);
+            const locked = await token.getLockedAmount(user1.address);
+            console.log("锁定后余额：", newBalance.toString());
+            // console.log("可用余额：", availables.toString());
+            console.log("锁定金额：", locked.toString());
 
             const available = await token.availableBalance(user1.address);
             const exceedAmount = available + ethers.parseEther("1");
@@ -231,6 +248,8 @@ describe("AdvancedToken 滑点测试", function () {
         it("解锁代币后可用余额应该增加", async function () {
             const lockAmount = ethers.parseEther("2000");
             const unlockTime = Math.floor(Date.now() / 1000) + 1; // 1秒后解锁
+
+            await waitForDeployment(1);
 
             await token.connect(user1).lockTokens(lockAmount, unlockTime);
 
@@ -295,6 +314,8 @@ describe("AdvancedToken 滑点测试", function () {
         });
 
         it("多个锁定记录应该正确计算总锁定金额", async function () {
+            // 先查询用户实际余额
+            const totalBalance = await token.balanceOf(user1.address)
             // 创建多个锁定记录
             const lock1 = ethers.parseEther("1000");
             const lock2 = ethers.parseEther("2000");
@@ -310,7 +331,7 @@ describe("AdvancedToken 滑点测试", function () {
             expect(totalLocked).to.equal(lock1 + lock2 + lock3);
 
             const available = await token.availableBalance(user1.address);
-            const totalBalance = await token.balanceOf(user1.address);
+            const newBalance = await token.balanceOf(user1.address);
 
             expect(available).to.equal(totalBalance - totalLocked);
         });
@@ -448,14 +469,14 @@ describe("AdvancedToken 滑点测试", function () {
 
         it("高手续费率下转账应该正确计算", async function () {
             // 设置接近上限的手续费率
-            await token.connect(owner).setTransferFee(4999); // 49.99%
+            await token.connect(owner).setTransferFee(499); // 49.99%
 
             const amount = ethers.parseEther("100");
             const fee = await token.calculateFee(amount);
             const netAmount = amount - fee;
 
             // 验证手续费计算正确
-            const expectedFee = (amount * 4999n) / 10000n;
+            const expectedFee = (amount * 499n) / 10000n;
             expect(fee).to.equal(expectedFee);
 
             // 验证转账

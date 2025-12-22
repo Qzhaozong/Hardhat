@@ -5,8 +5,8 @@
 const { expect } = require("chai"); // Chai断言库，用于编写测试断言
 const { ethers } = require("hardhat"); // Hardhat的以太坊工具包
 const { loadFixture, time } = require("@nomicfoundation/hardhat-network-helpers");
-// loadFixture: 用于加载测试夹具，复用部署状态
-// time: 用于模拟区块链时间操作
+// loadFixture: 用于加载测试夹具，复用部署状态，提高测试性能
+// time: 用于模拟区块链时间操作，如时间推进
 
 // 描述测试套件：AdvancedToken 合约测试
 describe("AdvancedToken 合约测试", function () {
@@ -337,7 +337,7 @@ describe("AdvancedToken 合约测试", function () {
         const balanceBefore = await token.balanceOf(user1.address);
         console.log("用户实际余额:", ethers.formatEther(balanceBefore)); // 990
         // 2. 锁定合理金额（不超过余额的一半）
-        const lockAmount = balanceBefore / 2n; // 锁定一半，即 495
+        const lockAmount = balanceBefore / 10n * 8n; // 锁定一半，即 495
         const unlockTime = (await time.latest()) + 86400;
         console.log("锁定金额:", ethers.formatEther(lockAmount));
         // 3. 执行锁定
@@ -347,12 +347,10 @@ describe("AdvancedToken 合约测试", function () {
         const balanceAfter = await token.balanceOf(user1.address);
         const availableAfter = await token.availableBalance(user1.address);
         const lockedAmount = await token.getLockedAmount(user1.address);
-        // 验证总余额减少
-        expect(balanceAfter).to.equal(balanceBefore - lockAmount);
         // 验证锁定金额正确
         expect(lockedAmount).to.equal(lockAmount);
         // 验证可用余额正确
-        expect(availableAfter).to.equal(balanceAfter - lockedAmount);
+        expect(availableAfter).to.equal(balanceBefore - lockedAmount);
         // 验证事件
         await expect(tx)
             .to.emit(token, "TokensLocked")

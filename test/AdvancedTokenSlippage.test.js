@@ -246,17 +246,16 @@ describe("AdvancedToken 滑点测试", function () {
         });
 
         it("解锁代币后可用余额应该增加", async function () {
-            const lockAmount = ethers.parseEther("2000");
-            const unlockTime = Math.floor(Date.now() / 1000) + 1; // 1秒后解锁
-
-            await waitForDeployment(1);
+            const totalBalance = await token.balanceOf(user1.address);
+            const lockAmount = totalBalance / 10n * 2n;
+            const unlockTime = (await ethers.provider.getBlock("latest")).timestamp + 3;
 
             await token.connect(user1).lockTokens(lockAmount, unlockTime);
 
             const availableBefore = await token.availableBalance(user1.address);
 
             // 等待解锁
-            await ethers.provider.send("evm_increaseTime", [2]);
+            await ethers.provider.send("evm_increaseTime", [4]);
             await ethers.provider.send("evm_mine", []);
 
             await token.connect(user1).unlockTokens();
@@ -338,19 +337,19 @@ describe("AdvancedToken 滑点测试", function () {
 
         it("部分解锁后可用余额应该相应增加", async function () {
             // 创建两个不同时间解锁的记录
-            const currentTime = Math.floor(Date.now() / 1000);
+            const currentTime = (await ethers.provider.getBlock("latest")).timestamp;
             const lock1 = ethers.parseEther("1000");
             const lock2 = ethers.parseEther("2000");
 
             // 第一个立即解锁，第二个24小时后解锁
-            await token.connect(user1).lockTokens(lock1, currentTime + 1);
+            await token.connect(user1).lockTokens(lock1, currentTime + 3);
             await token.connect(user1).lockTokens(lock2, currentTime + 86400);
 
             const lockedBefore = await token.getLockedAmount(user1.address);
             expect(lockedBefore).to.equal(lock1 + lock2);
 
             // 时间前进到第一个解锁时间之后
-            await ethers.provider.send("evm_increaseTime", [2]);
+            await ethers.provider.send("evm_increaseTime", [4]);
             await ethers.provider.send("evm_mine", []);
 
             // 解锁（应该只解锁第一个）
@@ -401,14 +400,15 @@ describe("AdvancedToken 滑点测试", function () {
         it("批量转账考虑手续费和锁定", async function () {
             // 设置 1% 手续费
             await token.connect(owner).setTransferFee(100);
-
+            // 获取原始余额
+            const totalBalance = await token.balanceOf(user1.address);
             // 锁定部分代币
-            const lockAmount = ethers.parseEther("4000");
+            const lockAmount = totalBalance / 10n * 4n;
             const unlockTime = Math.floor(Date.now() / 1000) + 86400;
             await token.connect(user1).lockTokens(lockAmount, unlockTime);
 
             const available = await token.availableBalance(user1.address);
-            const halfAvailable = available / 2n;
+            const halfAvailable = available / 10n * 3n;
 
             const recipients = [
                 { to: user2.address, amount: halfAvailable },

@@ -122,11 +122,13 @@ describe("AdvancedToken 测试", function () {
     describe("代币锁定", function () {
         // 测试锁定代币功能是否正常工作
         it("应该成功锁定代币", async function () {
+            // 获取原始余额
+            const totalBalance = await advancedToken.balanceOf(user1.address);
             // 设置锁定金额为100代币
-            const lockAmount = ethers.parseEther("100");
+            const lockAmount = totalBalance / 10n; // 锁定10%
             // 设置解锁时间为当前时间+24小时
-            const unlockTime = Math.floor(Date.now() / 1000) + 86400; // 24小时后解锁
-
+            const latestBlock = await ethers.provider.getBlock("latest");
+            const unlockTime = latestBlock.timestamp + 86400; // 24小时后
             // 执行锁定代币操作
             await expect(advancedToken.connect(user1).lockTokens(lockAmount, unlockTime))
                 .to.emit(advancedToken, "TokensLocked") // 验证锁定事件是否触发
@@ -138,8 +140,8 @@ describe("AdvancedToken 测试", function () {
 
             // 验证可用余额是否减少
             const availableBalance = await advancedToken.availableBalance(user1.address); // 获取可用余额
-            const totalBalance = await advancedToken.balanceOf(user1.address); // 获取总余额
             expect(availableBalance).to.equal(totalBalance - lockAmount); // 可用余额 = 总余额 - 锁定金额
+
         });
     });
 });

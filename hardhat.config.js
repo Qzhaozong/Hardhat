@@ -1,6 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("hardhat-gas-reporter");
-require("solidity-coverage");
+// require("solidity-coverage");
 
 
 /** @type import('hardhat/config').HardhatUserConfig */

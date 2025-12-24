@@ -409,7 +409,7 @@ contract AdvancedToken {
         uint256 netAmount = amount - fee; // 计算净转账金额
 
         // 检查可用余额（扣除锁定部分）
-        uint256 available = availableBalance(from); // ❌ 问题：这里会调用有问题的availableBalance
+        uint256 available = availableBalance(from);
         require(
             available >= amount,
             "AdvancedToken: transfer amount exceeds available balance"

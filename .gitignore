@@ -2,7 +2,7 @@
 # Hardhat files
 /cache
 /artifacts
-# .vscode/
+.vscode/
 # TypeChain files
 /typechain
 /typechain-types
@@ -11,6 +11,6 @@
 /coverage.json
 # Hardhat Ignition default folder for deployments against a local node
 ignition/deployments/chain-31337
-# node_modules/
+node_modules/
 report/
 report/test_reports

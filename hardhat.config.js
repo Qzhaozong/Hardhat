@@ -57,7 +57,7 @@ module.exports = {
     timeout: 60000,
     reporter: "mochawesome",  // 使用 mochawesome 报告器
     reporterOptions: {
-      reportDir: "./report/test_reports",  // 报告输出目录
+      reportDir: "./report",  // 报告输出目录
       overwrite: true,           // 不覆盖旧的报告
       html: true,                 // 生成 HTML
       json: false                  // 同时生成 JSON

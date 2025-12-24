@@ -168,68 +168,84 @@ contract MockLiquidityPool {
     function executeTradeWithSlippageCheck(
         int256 tokenAmount,
         uint256 ethAmount,
-        uint256 maxSlippage
-    ) public {
-        // 声明局部变量：预期ETH数量、代币绝对数量、实际滑点
-        uint256 expectedEth;
-        uint256 absTokenAmount;
-        uint256 slippage;
-
+        uint256 maxSlippageBps // 最大允许滑点，单位：基点（1/10000）
+    ) external {
         if (tokenAmount > 0) {
-            // 买入操作逻辑
-            // 转为无符号整数（代币绝对数量）
-            absTokenAmount = uint256(tokenAmount);
-            // 检查：买入数量不超过池内代币余额
+            // 买入操作
+            uint256 absTokenAmount = uint256(tokenAmount);
             require(
                 absTokenAmount <= tokenBalance,
                 "Insufficient token liquidity"
             );
-            // 计算买入该数量代币所需的预期ETH数量
-            expectedEth = calculateEthRequired(absTokenAmount);
 
-            // 计算实际滑点：滑点=|实际ETH-预期ETH| / 预期ETH * 10000
-            if (ethAmount >= expectedEth) {
-                // 实际ETH >= 预期ETH：滑点=(实际-预期)/预期 * 10000
-                slippage = ((ethAmount - expectedEth) * 10000) / expectedEth;
+            // 计算理论所需ETH
+            uint256 expectedEth = calculateEthRequired(absTokenAmount);
+
+            // 计算滑点（基于价格变化）
+            // 1. 计算交易前的价格
+            uint256 priceBefore = (ethBalance * 1e18) / tokenBalance;
+
+            // 2. 计算交易后的理论价格
+            uint256 newTokenBalance = tokenBalance - absTokenAmount;
+            uint256 newEthBalance = ethBalance + expectedEth;
+            uint256 priceAfter = (newEthBalance * 1e18) / newTokenBalance;
+
+            // 3. 计算价格变化百分比（滑点）
+            uint256 slippage;
+            if (priceAfter > priceBefore) {
+                // 价格上涨，买入推高价格
+                slippage = ((priceAfter - priceBefore) * 10000) / priceBefore;
             } else {
-                // 实际ETH < 预期ETH：滑点=(预期-实际)/预期 * 10000
-                slippage = ((expectedEth - ethAmount) * 10000) / expectedEth;
+                // 价格下跌（理论上不会发生，除非计算错误）
+                slippage = 0;
             }
 
-            // 若实际滑点超过最大允许滑点，触发错误并回滚交易
-            if (slippage > maxSlippage) revert SlippageTooHigh();
+            // console.log("滑点检查:");
+            // console.log("  价格前:", priceBefore);
+            // console.log("  价格后:", priceAfter);
+            // console.log("  滑点(bps):", slippage);
+            // console.log("  最大允许滑点(bps):", maxSlippageBps);
 
-            // 执行模拟买入：更新池内余额
+            // 检查滑点
+            require(slippage <= maxSlippageBps, "Slippage too high");
+
+            // 检查用户支付的ETH是否足够
+            require(ethAmount >= expectedEth, "Insufficient ETH provided");
+
+            // 执行交易
             tokenBalance -= absTokenAmount;
             ethBalance += ethAmount;
-            // 触发Trade事件，记录买入交易
+
             emit Trade(msg.sender, absTokenAmount, ethAmount, true);
         } else if (tokenAmount < 0) {
-            // 卖出操作逻辑
-            // 转为无符号整数（代币绝对数量，取负值的绝对值）
-            absTokenAmount = uint256(-tokenAmount);
-            // 计算卖出该数量代币可获得的预期ETH数量
-            expectedEth = calculateEthReceived(absTokenAmount);
-            // 检查：提取的ETH数量不超过池内ETH余额
+            // 卖出操作
+            uint256 absTokenAmount = uint256(-tokenAmount);
+            uint256 expectedEth = calculateEthReceived(absTokenAmount);
             require(ethAmount <= ethBalance, "Insufficient ETH liquidity");
 
-            // 计算实际滑点：滑点=|实际ETH-预期ETH| / 预期ETH * 10000
-            if (ethAmount >= expectedEth) {
-                slippage = ((ethAmount - expectedEth) * 10000) / expectedEth;
+            // 计算滑点（卖出导致价格下跌）
+            uint256 priceBefore = (ethBalance * 1e18) / tokenBalance;
+
+            uint256 newTokenBalance = tokenBalance + absTokenAmount;
+            uint256 newEthBalance = ethBalance - expectedEth;
+            uint256 priceAfter = (newEthBalance * 1e18) / newTokenBalance;
+
+            uint256 slippage;
+            if (priceBefore > priceAfter) {
+                // 价格下跌，卖出压价
+                slippage = ((priceBefore - priceAfter) * 10000) / priceBefore;
             } else {
-                slippage = ((expectedEth - ethAmount) * 10000) / expectedEth;
+                slippage = 0;
             }
 
-            // 若实际滑点超过最大允许滑点，触发错误并回滚交易
-            if (slippage > maxSlippage) revert SlippageTooHigh();
+            require(slippage <= maxSlippageBps, "Slippage too high");
+            require(ethAmount <= expectedEth, "Too much ETH requested");
 
-            // 执行模拟卖出：更新池内余额
             tokenBalance += absTokenAmount;
             ethBalance -= ethAmount;
-            // 触发Trade事件，记录卖出交易
+
             emit Trade(msg.sender, absTokenAmount, ethAmount, false);
         }
-        // 若tokenAmount=0，不执行任何操作
     }
 
     // ============ 视图函数（仅查询状态，不修改合约数据） ============

@@ -55,6 +55,14 @@ module.exports = {
   },
   mocha: {
     timeout: 60000,
+    reporter: "mochawesome",  // 使用 mochawesome 报告器
+    reporterOptions: {
+      reportDir: "./report/test_reports",  // 报告输出目录
+      overwrite: true,           // 不覆盖旧的报告
+      html: true,                 // 生成 HTML
+      json: false                  // 同时生成 JSON
+
+    }
   },
   paths: {
     sources: "./contracts",
@@ -62,4 +70,15 @@ module.exports = {
     cache: "./cache",
     artifacts: "./artifacts",
   },
+  coverage: {
+    // outputDir: "./report/coverage", // 将覆盖率报告输出到独立的子目录
+    // 可选：添加包含/排除规则，使报告更精准
+    exclude: [
+      "test/**",           // 排除测试目录
+      "node_modules/**",   // 排除依赖
+      "**/Mock*.sol",      // 排除所有 Mock 合约
+      "cache/**",          // 排除缓存
+      "artifacts/**"       // 排除编译产物
+    ]
+  }
 };

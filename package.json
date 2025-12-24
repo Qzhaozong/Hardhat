@@ -10,7 +10,13 @@
     "ethers": "^6.16.0",
     "hardhat": "^2.28.0",
     "hardhat-gas-reporter": "^2.3.0",
+    "mochawesome": "^7.1.4",
     "solidity-coverage": "^0.8.17",
     "tinybench": "^6.0.0"
+  },
+  "scripts": {
+    "test": "hardhat test",
+    "coverage": "hardhat coverage && mv coverage report/coverage",
+    "coverage:clean": "rm -rf coverage report/coverage && hardhat coverage && mv coverage report/coverage"
   }
 }

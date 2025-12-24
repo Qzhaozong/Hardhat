@@ -81,14 +81,20 @@ describe("AdvancedToken 流动性测试", function () {
             console.log(`${ethers.formatEther(ethRequired)} ETH`);
 
             // 计算交易后资产余额+新价格+价格影响
-            const newPoolToken = poolTokenBalance - buyAmount; // 减法运算，BigInt类型
-            const newPoolEth = poolEthBalance + ethRequired; // 加法运算
-            const newPrice = newPoolEth * ethers.parseEther("1") / newPoolToken; // 计算新价格
-            const priceImpact = (newPrice - initialPrice) * 10000n / initialPrice; // 计算价格影响，乘以10000转为百分比基点
-            console.log(`价格影响: ${ethers.formatEther(priceImpact / 100n)}%`); // 除以100转换为实际百分比
-
+            // 减法运算，BigInt类型
+            const newPoolToken = poolTokenBalance - buyAmount;
+            // 加法运算
+            const newPoolEth = poolEthBalance + ethRequired;
+            // 计算新价格
+            const newPrice = newPoolEth * ethers.parseEther("1") / newPoolToken;
+            // 计算价格影响，乘以10000转为百分比基点
+            const priceImpact = (newPrice - initialPrice) * 10000n / initialPrice;
+            // 除以100转换为实际百分比
+            console.log(`价格影响: ${ethers.formatEther(priceImpact / 100n)}%`);
             // 断言核心：价格影响小于5% (500n = 5%，放大10000倍计算，规避小数精度)
-            expect(priceImpact).to.be.lt(500n); // Chai断言：priceImpact < 500
+            // Chai断言：priceImpact < 500
+            expect(priceImpact).to.be.lt(500n);
+
         });
 
         /**
